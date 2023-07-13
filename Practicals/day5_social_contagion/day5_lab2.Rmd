@@ -2,6 +2,7 @@
 title: "Simple and Complex Contagion in Networks"
 author: "Elena Candellone, prof. Vincent Buskens (adapted from Dr. Jiamin Ou)"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -13,17 +14,25 @@ The network we use today is based upon the Twitter network data. A small-world l
 First, let's import the necessary packages.
 
 ```{r}
-renv::restore()
-#install.packages("renv") 
-library(igraph)
-library(visNetwork)
-library(htmlwidgets)
+
+# Package names
+packages <- c('igraph', 'visNetwork',"htmlwidgets")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+
 ```
 
 Use the network data to build the original network (a.k.a. Network1).
 
 ```{r}
-netdata<-read.csv("./data/day5_socialdynamics_Networkdata.csv", header = TRUE)
+netdata<-read.csv("day5_socialdynamics_Networkdata.csv", header = TRUE)
 Network1<-graph_from_data_frame(netdata, directed = FALSE)
 ```
 
@@ -53,7 +62,7 @@ VisNetwork1_layout
 # Record the node IDs constituting these 6 edges. And explain the criteria that you have used to identify weak ties and strong ties. Answer:
 ```
 
-Check out the network and find the weak ties and strong ties. You can zoom in and zoom out to check the links; by clicking a node, its id will be shown on the small window of left hand side; and its nearby nodes will be highlighted. Recall the definitions of weak ties and strong ties in the lecture.
+Check out the network and find the weak ties and strong ties. You can zoom in and zoom out to check the links; by clicking a node, its id will be shown in the small window on left hand side; and its nearby nodes will be highlighted. Recall the definitions of weak ties and strong ties in the lecture.
 
 ## Question 2
 
@@ -63,19 +72,19 @@ Next, we will test the strength of weak ties in simple contagion. First, build a
 
 -   At Day 0, all the nodes in the network are healthy;
 
--   At Day 1, an infected node (N0, node ID= 5) is introduced to the network;
+-   At Day 1, an infected node (N0, node ID=5) is introduced to the network;
 
 -   At the following days, all the nodes connecting to an infected node will have a chance of 35% (p=0.35) being infected.
 
 -   Once infected, the node will remain contagious and infected until the end of simulation.
 
-**After you build the model, apply it to the Network1, and record the number of newly infected people by day (i.e., newly confirmed cases by day) for further analysis.**
+**After you build the model, apply it to the Network 1, and record the number of newly infected people by day (i.e., newly confirmed cases by day) for further analysis.**
 
 ### 2.1 Functions to build the IC model
 
-**Note1**: You can develop your own code according to the model description in Q2;
+**Note 1**: You can develop your own code according to the model description in Q2;
 
-**Note2**: If you decide to use the code below, try to understand.
+**Note 2**: If you decide to use the code below, try to understand.
 
 ```{r}
 stopifnot(require(data.table))
@@ -149,15 +158,17 @@ result1_forplot   # the number of newly infected people by day
 
 ## Question 3
 
-Based upon Network 1, **delete 3 WEAK ties** that you have identified to generate a new network (Network 2). **Apply the IC model to the Network 2**, and record the number of newly infected people by day for further analysis. \### 3.1 Reconstruct the network by deleting 3 weak ties
+Based upon Network 1, **delete 3 WEAK ties** that you have identified to generate a new network (Network 2). **Apply the IC model to the Network 2**, and record the number of newly infected people by day for further analysis.
+
+### 3.1 Reconstruct the network by deleting 3 weak ties
 
 ```{r}
 #Change the numbers to the ties that you want to delete,
 #e.g., if you want to delete the tie between 22 and 46, change "1|2" to "22|46"
 Network2<-Network1 %>%
-  delete_edges("18|44") %>%   #!!!Change to your own numbers
-  delete_edges("36|32") %>%   #!!!Change to your own numbers
-  delete_edges("49|48")       #!!!Change to your own numbers
+  delete_edges("1|2") %>%   #!!!Change to your own numbers
+  delete_edges("3|4") %>%   #!!!Change to your own numbers
+  delete_edges("5|6")       #!!!Change to your own numbers
 ```
 
 ### 3.2 Apply the IC model to Network 2
@@ -173,14 +184,16 @@ result2_forplot
 
 ## Question 4
 
-Based upon Network 1, **delete 3 STRONG ties** that you have identified to generate a new network (Network 3). **Apply the IC model to the Network 3**, and record the number of newly infected people by day for further analysis. \### 4.1 Reconstruct the network by deleting 3 strong ties
+Based upon Network 1, **delete 3 STRONG ties** that you have identified to generate a new network (Network 3). **Apply the IC model to the Network 3**, and record the number of newly infected people by day for further analysis.
+
+### 4.1 Reconstruct the network by deleting 3 strong ties
 
 ```{r}
 #Change the numbers to the ties that you want to delete,
 #e.g., if you want to delete the tie between 22 and 46, change "1|2" to "22|46"
 Network3<-Network1 %>%
-  delete_edges("54|53") %>%   #!!!Change to your own numbers
-  delete_edges("50|51") %>%   #!!!Change to your own numbers
+  delete_edges("1|2") %>%   #!!!Change to your own numbers
+  delete_edges("3|4") %>%   #!!!Change to your own numbers
   delete_edges("5|6")       #!!!Change to your own numbers
 
 ```
@@ -198,7 +211,7 @@ result3_forplot
 
 ## Question 5
 
-**Generate a plot** (Plot_p0) to compare the daily infected percentages of Network 1, Network 2 and Network 3. What do you observe? Considering the fact that the amount of edges we deleted in Network 2 and 3 account for around 2% of the total edges in Network 1, what is the implication of your observation?
+**Generate a plot** (Plot_p0) to compare the daily infected percentages of Network 1, Network 2 and Network 3. What do you observe? Considering the fact that the amount of edges we deleted in Networks 2 and 3 account for around 2% of the total edges in Network 1, what is the implication of your observation?
 
 ```{r}
 SumResult<-data.frame(matrix(nrow=28*3,ncol=3))
@@ -217,12 +230,12 @@ Plot_p0
 ```
 
 ```{r}
-# What do you observe? Considering the fact that the amount of edges we deleted in Network 2 and 3 account for around 2% of the total edges in Network 1, what is the implication of your observation? Answer:
+# What do you observe? Considering the fact that the number of edges we deleted in Network 2 and 3 account for around 2% of the total edges in Network 1, what is the implication of your observation? Answer:
 ```
 
 ## Question 6
 
-Try to explain the your observation in Question 5 in more details as a network scientist-- by looking at the change of network structure. To do so, we suggest you to check the following network attributes of Network 1, Network 2 and Network 3:
+Try to explain your observation in Question 5 in more detail, as a network scientist, by looking at the change in network structure. To do so, we suggest you to check the following network attributes of Network 1, Network 2 and Network 3:
 
 1.  Clustering coefficient
 
@@ -322,19 +335,19 @@ Plot_p2
 
 # Afternoon lab session
 
-In the lecture, we did a small survey on your 'threshold' to restrict your beef consumption to once a week or lower. Here, let's **build a threshold model** to simulate the spread of "once-a-week-beef" campaign in Network 1. Below is the model description:
+In the lecture, we considered restricting your beef consumption to once a week or lower. Here, let's **build a threshold model** to simulate the spread of the "once-a-week-beef" campaign in Network 1. Below is the model description:
 
--   Each node in the network has two statuses: adopt the behavior (value=1) or refuse to adopt (value =0);
+-   Each node in the network has two statuses: adopt the behavior (value=1) or refuse to adopt (value=0);
 
 -   At Day 0, no one in the network adopts the behavior;
 
--   At Day 1, a group of enthusiastic people (Node ID={1, 2, 5, 11}) in the network decided to take action and adopt their own behaviors (change the status value to 1);
+-   At Day 1, a group of enthusiastic people (Node ID={1, 2, 5, 11}) in the network decide to take action and adopt their own behavior (change the status value to 1);
 
--   At the following days, for nodes who haven't adopted, they will check the status of their neighbors to decide to adopt or not:
+-   The following days, for nodes who have not adopted, they will check the status of their neighbors to decide whether to adopt or not:
 
-    -   For example, for node i, it has a predefined threshold of $Ɵ_i$. And node i has $N_i$ number of neighbours in the whole network.
+    -   For example, for node i, it has a predefined threshold of $Ɵ_i$. And node i has $N_i$ number of neighbors in the whole network.
 
-    -   Among all the neighbours of Node i, if more than $Ni\cdot Ɵi$ of them have adopted, node i will also adopt and change the status value to 1.
+    -   Among all the neighbors of Node i, if more than $Ni\cdot Ɵi$ of them have adopted, node i will also adopt and change the status value to 1.
 
 -   Once adopted, the status of this node will remain as 1 till the end.
 
@@ -342,7 +355,7 @@ In the lecture, we did a small survey on your 'threshold' to restrict your beef 
 
 Codes for the threshold model are provided here. Apply the threshold model to Network 1. By activating 4 nodes (id=1, 2, 5, 11), **how many people in the network can be activated**? Plot the network to show how the contagion spreads.
 
-### Functions to build the threshold model
+### 8.1 Functions to build the threshold model
 
 ```{r}
 calculate_adoptedNei <- function(node, node_status, each_neighbors){
@@ -397,7 +410,7 @@ ThModel<-function(node_seed,network,threshold){
 }
 ```
 
-### 8.2 read threshold data
+### 8.2 Read threshold data
 
 ```{r}
 #since we don't have the 'real' threshold for the population, we will assign threshold by random number from 0 to 1
@@ -412,15 +425,19 @@ seeds<-c(1,2,5,11) #the people who first join the campaign
 ThM_Network1<-ThModel(seeds,Network1,threshold)
 ThM_Network1[[1]]  #total number of active people by day
 ```
+
 ```{r}
 # By activating 4 nodes (id=1, 2, 5, 11), how many people in the network can be activated? Answer:
 ```
+
 ### 8.3 Plot the network
+
 ```{r}
 ThM_result1=rep("Inactive",64) 
 ThM_result1[unlist(ThM_Network1[[2]])]<-"Active"
 ThM_result1[seeds]<-"Seeds"
 ```
+
 ```{r}
 nodes <- data.frame(id=V(Network1)$name,group=ThM_result1)
 set.seed(100)
@@ -435,10 +452,10 @@ ThM_status1<-visNetwork(nodes, edges, main = "Outcome by seeding Node 1, 2, 5, 1
 
 ThM_status1 #Inactive nodes in grey, seed nodes in red, active nodes in orange
 ```
+
 ## Question 9
 
-Apply the threshold model by activating **only one node** (id = 5).
-Recall the diffusion of virus we simulated in the morning: a network-wide contagion has been observed with only one node (id=5) being activated at Day 0, for various values of p. Use the theory of "width of bridge" in complex contagion, **explain why a network-wide contagion is not happening here**.
+Apply the threshold model by activating **only one node** (id = 5). Recall the diffusion of viruses we simulated in the morning: a network-wide contagion has been observed with only one node (id=5) being activated at Day 0, for various values of p. Use the theory of "width of bridge" in complex contagion, **explain why a network-wide contagion is not happening here**.
 
 ### 9.1 Apply the threshold model to Network 1
 
@@ -447,15 +464,19 @@ seeds<-c(5) #the people who first join the campaign
 ThM_Network2<-ThModel(seeds,Network1,threshold)
 ThM_Network2[[1]]  #total number of active people by day
 ```
+
 ```{r}
 # By activating 1 node (id=5), how many people in the network can be activated? Answer:
 ```
+
 ### 9.2 Plot the network
+
 ```{r}
 ThM_result2=rep("Inactive",64) 
 ThM_result2[unlist(ThM_Network2[[2]])]<-"Active"
 ThM_result2[seeds]<-"Seeds"
 ```
+
 ```{r}
 nodes <- data.frame(id=V(Network1)$name,group=ThM_result2)
 set.seed(100)
@@ -475,21 +496,19 @@ ThM_status2 #Inactive nodes in grey, seed nodes in red, active nodes in orange
 # Use the theory of "width of bridge" in complex contagion, **explain why a network-wide contagion is not happening here**. Answer:
 ```
 
-
-
 ## Question 10
 
-Imagine now the project team of the "once-a-week-beef" campaign plans to increase the membership by spending part of the budget to hire four "ambassadors". The team leader suggests that the ambassadors should be the four people having the most number of friends in this network. Recall the **Influence Maximization problem** we discussed in the lecture and its solutions, can you relate this idea to one of the solutions we mentioned? Guided by this idea, **which nodes should be selected as ambassadors**? What is the expected outcome suggested by the threshold model? (Note: All nodes are Inactive before the ambassadors are hired, i.e., node 1, 2, 5 and 11 are not the seeds anymore)
+Imagine now the project team of the "once-a-week-beef" campaign plans to increase the membership by spending part of the budget to hire four "ambassadors". The team leader suggests that the ambassadors should be the four people having most friends in this network. Recall the **Influence Maximization problem** we discussed in the lecture and its solutions: can you relate this idea to one of the solutions we mentioned? Guided by this idea, **which nodes should be selected as ambassadors**? What is the expected outcome suggested by the threshold model? (Note: All nodes are Inactive before the ambassadors are hired, i.e., node 1, 2, 5 and 11 are not the seeds anymore)
 
 ```{r}
-igraph::degree(Network1) #degree by nodes
+degree(Network1) #degree by nodes
 nSeed=4 #can hire 4 ambassadors
 ```
 
-### 10.1 Find out 4 high-Degree seeds
+### 10.1 Find out 4 high-degree seeds
 
 ```{r}
-seedHD <- order(igraph::degree(Network1), decreasing=TRUE)[1:4]
+seedHD <- order(degree(Network1), decreasing=TRUE)[1:4]
 ```
 
 ```{r}
@@ -519,6 +538,7 @@ ThM_statusHD<-visNetwork(nodes, edges, main = "Outcome of high-degree seeding",
 
 ThM_statusHD  #Outcome of high-degree seeding
 ```
+
 ```{r}
 # Which nodes should be selected as ambassadors? What is the expected outcome suggested by the threshold model? Answer:
 ```
@@ -582,7 +602,7 @@ ThModel(greedy_ThM4,Network1,threshold)[[1]]
 
 ```{r}
 
-######visualize the seeding outcome##########
+######visualize the seeding outcome######stop#
 ThM_resultGreedy=rep("Inactive",64) 
 ThM_resultGreedy[unlist(ThModel(greedy_ThM4,Network1,threshold)[[2]])]<-"Active"
 ThM_resultGreedy[greedy_ThM4]<-"Seeds"
